@@ -35,6 +35,83 @@ app.get('/', (req, res) => {
   res.send('🐾 Welcome to PetPal API – Check if food is safe for your pet!');
 });
 
+// API route for compatibility with /api/check
+app.get('/api/check', async (req, res) => {
+  const { pet, food, animal } = req.query;
+
+  // Support both 'pet' and 'animal' parameters
+  const petType = pet || animal;
+
+  if (!petType || !food) {
+    return res.status(400).json({
+      error: "Please provide both 'pet' (or 'animal') and 'food' parameters.",
+      example: "/api/check?pet=dog&food=grapes"
+    });
+  }
+
+  try {
+    console.log(`🔍 API Query: ${petType} + ${food}`);
+
+    // Query Firestore for existing data
+    const snapshot = await db.collection('foods')
+      .where('pet', '==', petType.toLowerCase())
+      .where('food', '==', food.toLowerCase())
+      .get();
+
+    console.log(`🔍 Firestore result: empty=${snapshot.empty}, size=${snapshot.size}`);
+
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0].data();
+      console.log('✅ Found in Firestore');
+      return res.json({
+        source: 'firestore',
+        animal: petType,
+        pet: petType,
+        food: food,
+        safe: doc.status === 'safe',
+        status: doc.status,
+        reason: doc.reason,
+        notes: doc.reason
+      });
+    }
+
+    console.log('🤖 Calling Gemini AI...');
+    // If not found in Firestore, use Gemini AI fallback
+    const geminiRes = await queryGemini(petType, food);
+    console.log('🤖 Gemini response:', geminiRes);
+
+    // Save Gemini result to Firestore for future queries
+    console.log('💾 Saving to Firestore...');
+    await db.collection('foods').add({
+      pet: petType.toLowerCase(),
+      food: food.toLowerCase(),
+      status: geminiRes.status,
+      reason: geminiRes.reason,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('✅ Saved to Firestore');
+
+    return res.json({
+      source: 'gemini',
+      animal: petType,
+      pet: petType,
+      food: food,
+      safe: geminiRes.status === 'safe',
+      status: geminiRes.status,
+      reason: geminiRes.reason,
+      notes: geminiRes.reason
+    });
+
+  } catch (error) {
+    console.error('❌ Error in /api/check route:', error);
+    res.status(500).json({
+      error: 'Something went wrong',
+      message: 'Please try again later or consult a vet.',
+      debug: error.message
+    });
+  }
+});
+
 app.get('/is-safe', async (req, res) => {
   const { pet, food } = req.query;
 
