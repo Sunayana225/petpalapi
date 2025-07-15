@@ -1,0 +1,20 @@
+[
+  {
+    "pet": "dog",
+    "food": "grapes",
+    "status": "unsafe",
+    "reason": "Grapes can cause kidney failure in dogs."
+  },
+  {
+    "pet": "cat",
+    "food": "milk",
+    "status": "caution",
+    "reason": "Many cats are lactose intolerant."
+  },
+  {
+    "pet": "rabbit",
+    "food": "carrot",
+    "status": "safe",
+    "reason": "Rabbits love carrots in moderation."
+  }
+]
