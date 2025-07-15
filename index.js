@@ -11,7 +11,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Firebase initialization
-const serviceAccount = require('./serviceAccountKey.json');
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Production: Use environment variable
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  console.log('🔥 Using Firebase credentials from environment variable');
+} else {
+  // Development: Use local file
+  serviceAccount = require('./serviceAccountKey.json');
+  console.log('🔥 Using Firebase credentials from local file');
+}
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
