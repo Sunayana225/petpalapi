@@ -3,3 +3,7 @@ node_modules/
 *.log
 .DS_Store
 .vscode/
+
+# Firebase credentials
+serviceAccountKey.json
+*firebase-adminsdk*.json
