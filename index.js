@@ -162,7 +162,12 @@ app.get('/is-safe', async (req, res) => {
 
 // Gemini AI fallback function
 async function queryGemini(pet, food) {
+  console.log('🔍 GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+  console.log('🔍 GEMINI_API_KEY preview:', process.env.GEMINI_API_KEY?.slice(0, 10));
+  console.log('🔍 All env keys:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
+
   if (!process.env.GEMINI_API_KEY) {
+    console.log('❌ Gemini API key not found in environment');
     return {
       pet,
       food,
@@ -215,4 +220,8 @@ async function queryGemini(pet, food) {
 app.listen(PORT, () => {
   console.log(`🚀 PetPal API with Firestore + Gemini AI running at http://localhost:${PORT}`);
   console.log(`🧪 Test it: http://localhost:${PORT}/is-safe?pet=dog&food=grapes`);
+  console.log(`🔑 Environment check:`);
+  console.log(`   - GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? 'Found (' + process.env.GEMINI_API_KEY.slice(0, 10) + '...)' : 'Missing'}`);
+  console.log(`   - FIREBASE_SERVICE_ACCOUNT: ${process.env.FIREBASE_SERVICE_ACCOUNT ? 'Found' : 'Missing'}`);
+  console.log(`   - PORT: ${PORT}`);
 });
